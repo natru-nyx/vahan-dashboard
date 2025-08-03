@@ -102,14 +102,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
-    const [newMeeting] = await db.insert(meetings).values(meeting).returning();
+    const [newMeeting] = await db.insert(meetings).values([meeting]).returning();
     return newMeeting;
   }
 
   async updateMeeting(id: string, meeting: Partial<InsertMeeting>): Promise<Meeting> {
+    const updateData: any = { ...meeting, updatedAt: new Date() };
     const [updatedMeeting] = await db
       .update(meetings)
-      .set({ ...meeting, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(meetings.id, id))
       .returning();
     return updatedMeeting;

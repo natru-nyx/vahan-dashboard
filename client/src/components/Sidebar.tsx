@@ -77,7 +77,7 @@ export default function Sidebar() {
             Teams
           </h3>
           <div className="space-y-1">
-            {teams?.map((team: any) => (
+            {Array.isArray(teams) && teams.length > 0 ? teams.map((team: any) => (
               <button
                 key={team.id}
                 onClick={() => setLocation(`/teams/${team.id}`)}
@@ -89,7 +89,7 @@ export default function Sidebar() {
                   3
                 </span>
               </button>
-            )) || (
+            )) : (
               <p className="text-sm text-gray-500 px-4 py-2">No teams yet</p>
             )}
           </div>
@@ -100,13 +100,13 @@ export default function Sidebar() {
       <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/30">
         <div className="flex items-center">
           <img
-            src={user?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"}
+            src={(user as any)?.profileImageUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"}
             alt="User profile"
             className="w-10 h-10 rounded-full object-cover mr-3"
           />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-800">
-              {user?.firstName || user?.email || 'User'}
+              {(user as any)?.firstName || (user as any)?.email || 'User'}
             </p>
             <p className="text-xs text-gray-500">Team Member</p>
           </div>
