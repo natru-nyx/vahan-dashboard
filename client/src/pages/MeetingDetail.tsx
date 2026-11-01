@@ -3,12 +3,13 @@ import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, MessageCircle, FileText, CheckSquare, User } from "lucide-react";
+import type { MeetingWithTeam } from "@shared/schema";
 
 export default function MeetingDetail() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
 
-  const { data: meeting, isLoading } = useQuery({
+  const { data: meeting, isLoading } = useQuery<MeetingWithTeam>({
     queryKey: ["/api/meetings", id],
     enabled: !!id,
   });
@@ -45,7 +46,7 @@ export default function MeetingDetail() {
     );
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | Date) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -53,7 +54,7 @@ export default function MeetingDetail() {
     });
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | Date) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit'
@@ -182,7 +183,7 @@ export default function MeetingDetail() {
                 <div>
                   <p className="text-sm text-gray-500">Created</p>
                   <p className="text-gray-800">
-                    {new Date(meeting.createdAt).toLocaleDateString()}
+                    {meeting.createdAt ? new Date(meeting.createdAt).toLocaleDateString() : "—"}
                   </p>
                 </div>
                 {meeting.team && (

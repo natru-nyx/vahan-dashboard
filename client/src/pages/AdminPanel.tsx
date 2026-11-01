@@ -7,17 +7,18 @@ import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { CloudUpload, FileText, Trash2, Settings, Activity } from "lucide-react";
+import type { Document, DashboardStats } from "@shared/schema";
 
 export default function AdminPanel() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: documents } = useQuery({
+  const { data: documents } = useQuery<Document[]>({
     queryKey: ["/api/documents"],
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["/api/stats"],
   });
 

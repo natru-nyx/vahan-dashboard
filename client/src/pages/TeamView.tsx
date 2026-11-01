@@ -2,16 +2,17 @@ import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
+import type { MeetingWithTeam, Team } from "@shared/schema";
 
 export default function TeamView() {
   const { teamId } = useParams();
 
-  const { data: meetings, isLoading } = useQuery({
-    queryKey: ["/api/meetings", { teamId }],
+  const { data: meetings, isLoading } = useQuery<MeetingWithTeam[]>({
+    queryKey: [`/api/meetings?teamId=${teamId}`],
     enabled: !!teamId,
   });
 
-  const { data: teams } = useQuery({
+  const { data: teams } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
 

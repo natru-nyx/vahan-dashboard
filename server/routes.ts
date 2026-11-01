@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { summarizeMeetingTranscript, answerQuestionWithContext, analyzeDocument } from "./gemini";
 import { insertMeetingSchema, insertChatSessionSchema, insertChatMessageSchema, insertDocumentSchema, insertTeamSchema } from "@shared/schema";
+import type { DashboardStats } from "@shared/schema";
 
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -241,22 +242,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stats endpoint for dashboard
   app.get("/api/stats", isAuthenticated, async (req, res) => {
     try {
-      const meetings = await storage.getMeetings();
-      const documents = await storage.getDocuments();
+      const [meetings, documents, teams, aiQueries] = await Promise.all([
+        storage.getMeetings(),
+        storage.getDocuments(),
+        storage.getTeams(),
+        storage.countUserChatMessages(),
+      ]);
       
       const totalMeetings = meetings.length;
       const actionItems = meetings.reduce((acc, meeting) => {
         const items = meeting.actionItems as string[] || [];
         return acc + items.length;
       }, 0);
+
+      // Share of teams that held at least one meeting in the last 30 days
+      const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const activeTeamIds = new Set(
+        meetings
+          .filter((m) => m.teamId && new Date(m.startTime).getTime() >= since)
+          .map((m) => m.teamId),
+      );
+      const teamActivity = teams.length
+        ? Math.round((activeTeamIds.size / teams.length) * 100)
+        : 0;
       
-      res.json({
+      const stats: DashboardStats = {
         totalMeetings,
         actionItems,
-        aiQueries: 156, // This would come from chat messages count
-        teamActivity: 92,
+        aiQueries,
+        teamActivity,
         documentsCount: documents.length,
-      });
+      };
+      res.json(stats);
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });

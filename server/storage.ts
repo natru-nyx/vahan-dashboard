@@ -10,6 +10,7 @@ import {
   type Team,
   type InsertTeam,
   type Meeting,
+  type MeetingWithTeam,
   type InsertMeeting,
   type ChatSession,
   type InsertChatSession,
@@ -19,7 +20,7 @@ import {
   type InsertDocument,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, count } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -31,9 +32,9 @@ export interface IStorage {
   createTeam(team: InsertTeam): Promise<Team>;
   
   // Meeting operations
-  getMeetings(): Promise<Meeting[]>;
-  getMeetingsByTeam(teamId: string): Promise<Meeting[]>;
-  getMeeting(id: string): Promise<Meeting | undefined>;
+  getMeetings(): Promise<MeetingWithTeam[]>;
+  getMeetingsByTeam(teamId: string): Promise<MeetingWithTeam[]>;
+  getMeeting(id: string): Promise<MeetingWithTeam | undefined>;
   createMeeting(meeting: InsertMeeting): Promise<Meeting>;
   updateMeeting(id: string, meeting: Partial<InsertMeeting>): Promise<Meeting>;
   
@@ -44,6 +45,7 @@ export interface IStorage {
   updateChatSession(id: string, session: Partial<InsertChatSession>): Promise<ChatSession>;
   getChatMessages(sessionId: string): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  countUserChatMessages(): Promise<number>;
   
   // Document operations
   getDocuments(): Promise<Document[]>;
@@ -84,25 +86,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Meeting operations
-  async getMeetings(): Promise<Meeting[]> {
-    return await db.select().from(meetings).orderBy(desc(meetings.startTime));
+  async getMeetings(): Promise<MeetingWithTeam[]> {
+    return await db.query.meetings.findMany({
+      with: { team: true },
+      orderBy: desc(meetings.startTime),
+    });
   }
 
-  async getMeetingsByTeam(teamId: string): Promise<Meeting[]> {
-    return await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.teamId, teamId))
-      .orderBy(desc(meetings.startTime));
+  async getMeetingsByTeam(teamId: string): Promise<MeetingWithTeam[]> {
+    return await db.query.meetings.findMany({
+      with: { team: true },
+      where: eq(meetings.teamId, teamId),
+      orderBy: desc(meetings.startTime),
+    });
   }
 
-  async getMeeting(id: string): Promise<Meeting | undefined> {
-    const [meeting] = await db.select().from(meetings).where(eq(meetings.id, id));
-    return meeting;
+  async getMeeting(id: string): Promise<MeetingWithTeam | undefined> {
+    return await db.query.meetings.findFirst({
+      with: { team: true },
+      where: eq(meetings.id, id),
+    });
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
-    const [newMeeting] = await db.insert(meetings).values([meeting]).returning();
+    const [newMeeting] = await db.insert(meetings).values(meeting as typeof meetings.$inferInsert).returning();
     return newMeeting;
   }
 
@@ -155,6 +162,14 @@ export class DatabaseStorage implements IStorage {
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
     const [newMessage] = await db.insert(chatMessages).values(message).returning();
     return newMessage;
+  }
+
+  async countUserChatMessages(): Promise<number> {
+    const [{ value }] = await db
+      .select({ value: count() })
+      .from(chatMessages)
+      .where(eq(chatMessages.isUser, true));
+    return value;
   }
 
   // Document operations

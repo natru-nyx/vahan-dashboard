@@ -173,3 +173,11 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type MeetingWithTeam = Meeting & { team: Team | null };
+export type DashboardStats = {
+  totalMeetings: number;
+  actionItems: number;
+  aiQueries: number;
+  teamActivity: number;
+  documentsCount: number;
+};

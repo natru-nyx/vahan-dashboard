@@ -3,15 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Brain, CheckSquare, Video, Handshake, Megaphone } from "lucide-react";
 import { useLocation } from "wouter";
+import type { DashboardStats, MeetingWithTeam } from "@shared/schema";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/stats"],
   });
 
-  const { data: meetings, isLoading: meetingsLoading } = useQuery({
+  const { data: meetings, isLoading: meetingsLoading } = useQuery<MeetingWithTeam[]>({
     queryKey: ["/api/meetings"],
   });
 

@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { CloudUpload, Calendar, Clock, Download, Trash2, User } from "lucide-react";
+import type { MeetingWithTeam, Team } from "@shared/schema";
 
 export default function AllMeetings() {
   const [, setLocation] = useLocation();
@@ -17,11 +18,11 @@ export default function AllMeetings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: meetings = [], isLoading } = useQuery({
+  const { data: meetings = [], isLoading } = useQuery<MeetingWithTeam[]>({
     queryKey: ["/api/meetings"],
   });
 
-  const { data: teams = [] } = useQuery({
+  const { data: teams = [] } = useQuery<Team[]>({
     queryKey: ["/api/teams"],
   });
 

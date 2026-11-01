@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Plus, MessageSquare } from "lucide-react";
+import type { ChatSession, ChatMessage } from "@shared/schema";
 
 export default function AIAssistant() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
@@ -13,11 +14,11 @@ export default function AIAssistant() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: sessions } = useQuery({
+  const { data: sessions } = useQuery<ChatSession[]>({
     queryKey: ["/api/chat/sessions"],
   });
 
-  const { data: messages } = useQuery({
+  const { data: messages } = useQuery<ChatMessage[]>({
     queryKey: ["/api/chat/sessions", selectedSessionId, "messages"],
     enabled: !!selectedSessionId,
   });
